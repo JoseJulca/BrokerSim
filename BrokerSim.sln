@@ -1,0 +1,37 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrokerSim.Protocol", "src\BrokerSim.Protocol\BrokerSim.Protocol.csproj", "{3C5A1A43-D1A7-4010-9FE0-68348334EE2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrokerSim.Server", "src\BrokerSim.Server\BrokerSim.Server.csproj", "{F6FE683A-BBDE-4624-BD2E-240000C53E9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrokerSim.Client", "src\BrokerSim.Client\BrokerSim.Client.csproj", "{28041563-5779-45C5-8779-9C15CE2EC8C3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C5A1A43-D1A7-4010-9FE0-68348334EE2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C5A1A43-D1A7-4010-9FE0-68348334EE2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C5A1A43-D1A7-4010-9FE0-68348334EE2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C5A1A43-D1A7-4010-9FE0-68348334EE2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6FE683A-BBDE-4624-BD2E-240000C53E9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6FE683A-BBDE-4624-BD2E-240000C53E9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6FE683A-BBDE-4624-BD2E-240000C53E9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6FE683A-BBDE-4624-BD2E-240000C53E9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28041563-5779-45C5-8779-9C15CE2EC8C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28041563-5779-45C5-8779-9C15CE2EC8C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28041563-5779-45C5-8779-9C15CE2EC8C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28041563-5779-45C5-8779-9C15CE2EC8C3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensionManagerSettings) = postSolution
+		SolutionGuid = {A1B2C3D4-E5F6-4789-9ABC-DEF012345678}
+	EndGlobalSection
+EndGlobal

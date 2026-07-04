@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BrokerSim · Sistema de Pedidos</title>
+<style>
+  :root {
+    --bg: #17130f;
+    --panel: #201a14;
+    --card: #251e17;
+    --line: #3c3125;
+    --text: #ede3d6;
+    --dim: #9c8a76;
+    --caja: #e2793f;
+    --cocina: #dba62f;
+    --delivery: #c1502f;
+    --error: #ff6b4a;
+    --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ---------- Encabezado ---------- */
+  header {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 {
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  header h1 span { color: var(--cocina); }
+
+  .roles { display: flex; gap: 8px; }
+  .role-btn {
+    padding: 8px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .role-btn[data-role="caja"].active     { border-color: var(--caja);     color: var(--caja); }
+  .role-btn[data-role="cocina"].active   { border-color: var(--cocina);   color: var(--cocina); }
+  .role-btn[data-role="delivery"].active { border-color: var(--delivery); color: var(--delivery); }
+
+  .status-block { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  #status { color: var(--dim); }
+  #status.on { color: var(--delivery); }
+  #status.off { color: var(--error); }
+  #gearBtn {
+    background: none; border: 1px solid var(--line); color: var(--dim);
+    width: 26px; height: 26px; border-radius: 5px; cursor: pointer; font-size: 13px;
+  }
+  #serverPanel {
+    display: none;
+    padding: 10px 24px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+  }
+  #serverPanel.open { display: flex; }
+  #serverUrl {
+    flex: 1; max-width: 360px;
+    background: var(--card); border: 1px solid var(--line); color: var(--text);
+    font-family: var(--mono); font-size: 12px; padding: 6px 10px; border-radius: 4px;
+  }
+
+  main { padding: 24px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  h2.view-title {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+    margin: 0 0 16px 0; font-weight: 700;
+  }
+  .view-title.caja     { color: var(--caja); }
+  .view-title.cocina    { color: var(--cocina); }
+  .view-title.delivery  { color: var(--delivery); }
+
+  /* ---------- Vista Caja ---------- */
+  #view-caja .layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+  .form-card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 11px; color: var(--dim); text-transform: uppercase;
+    letter-spacing: 0.05em; margin-bottom: 6px;
+  }
+  .field input, .field select {
+    width: 100%; background: var(--card); border: 1px solid var(--line); color: var(--text);
+    font-family: var(--mono); font-size: 13px; padding: 8px 10px; border-radius: 4px;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--caja); }
+  button.primary {
+    width: 100%; padding: 11px; border: none; font-family: var(--mono); font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 5px; cursor: pointer;
+    margin-top: 6px; color: #08110a;
+  }
+  #view-caja button.primary { background: var(--caja); color: #1a0e04; }
+  button.primary:disabled { background: var(--line); color: var(--dim); cursor: not-allowed; }
+
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    background: var(--card); border: 1px solid var(--line); border-radius: 6px;
+    padding: 10px 14px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  .history-item .desc { color: var(--text); }
+  .history-item .desc b { color: var(--caja); }
+  .history-item .tag {
+    font-size: 10px; padding: 3px 8px; border-radius: 10px; white-space: nowrap;
+    border: 1px solid var(--cocina); color: var(--cocina);
+  }
+
+  /* ---------- Tarjetas de pedido (cocina/delivery) ---------- */
+  .order-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+  }
+  .order-card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px;
+  }
+  .order-card .order-id { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  #view-cocina .order-id   { color: var(--cocina); }
+  #view-delivery .order-id { color: var(--delivery); }
+  .order-card .row { font-size: 12.5px; color: var(--text); margin-bottom: 4px; }
+  .order-card .row .k { color: var(--dim); }
+  .order-card button.action {
+    width: 100%; margin-top: 12px; padding: 9px; border: none; border-radius: 5px; cursor: pointer;
+    font-family: var(--mono); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  #view-cocina .order-card button.action   { background: var(--cocina); color: #2a1c08; }
+  #view-delivery .order-card button.action { background: var(--delivery); color: #ffffff; }
+
+  .empty-state {
+    padding: 60px 20px; text-align: center; color: var(--dim); font-size: 13px;
+    border: 1px dashed var(--line); border-radius: 8px;
+  }
+
+  /* ---------- Log técnico colapsable ---------- */
+  details.techlog { margin-top: 28px; }
+  details.techlog summary {
+    cursor: pointer; font-size: 11px; color: var(--dim); text-transform: uppercase;
+    letter-spacing: 0.05em; outline: none;
+  }
+  .log-entries { margin-top: 10px; max-height: 220px; overflow-y: auto; font-size: 11.5px; }
+  .log-entries .entry { display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px solid #2b2318; }
+  .log-entries .ts { color: var(--dim); flex-shrink: 0; }
+  .log-entries .tag { flex-shrink: 0; font-weight: 700; width: 80px; }
+  .log-entries .tag.recv { color: var(--delivery); }
+  .log-entries .tag.send { color: var(--caja); }
+  .log-entries .tag.sys  { color: var(--cocina); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Broker<span>Sim</span> · Sistema de Pedidos</h1>
+  <div class="roles">
+    <button class="role-btn" data-role="caja">Caja</button>
+    <button class="role-btn" data-role="cocina">Cocina</button>
+    <button class="role-btn" data-role="delivery">Delivery</button>
+  </div>
+  <div class="status-block">
+    <span id="status" class="off">desconectado</span>
+    <button id="gearBtn" title="Configurar servidor">&#9881;</button>
+  </div>
+</header>
+
+<div id="serverPanel">
+  <label for="serverUrl">Servidor:</label>
+  <input id="serverUrl" value="ws://localhost:5080/ws" />
+</div>
+
+<main>
+
+  <!-- ================= VISTA CAJA ================= -->
+  <section id="view-caja" class="view">
+    <h2 class="view-title caja">Caja &middot; Registrar pedido</h2>
+    <div class="layout">
+      <div class="form-card">
+        <div class="field">
+          <label>Cliente</label>
+          <input id="cajaCliente" placeholder="Juan Pérez" />
+        </div>
+        <div class="field">
+          <label>Producto</label>
+          <select id="cajaProducto">
+            <option>Hamburguesa</option>
+            <option>Pizza</option>
+            <option>Papas fritas</option>
+            <option>Gaseosa</option>
+            <option>Ensalada</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cantidad</label>
+          <input id="cajaCantidad" type="number" min="1" value="1" />
+        </div>
+        <div class="field">
+          <label>Dirección</label>
+          <input id="cajaDireccion" placeholder="Av. Lima 123" />
+        </div>
+        <button id="cajaSubmit" class="primary">Registrar pedido</button>
+      </div>
+      <div>
+        <div class="history-list" id="cajaHistory"></div>
+        <div class="empty-state" id="cajaEmpty">Aún no registraste ningún pedido.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VISTA COCINA ================= -->
+  <section id="view-cocina" class="view">
+    <h2 class="view-title cocina">Cocina &middot; Pedidos pendientes</h2>
+    <div class="order-grid" id="cocinaGrid"></div>
+    <div class="empty-state" id="cocinaEmpty">No hay pedidos pendientes.</div>
+  </section>
+
+  <!-- ================= VISTA DELIVERY ================= -->
+  <section id="view-delivery" class="view">
+    <h2 class="view-title delivery">Delivery &middot; Pedidos listos para despacho</h2>
+    <div class="order-grid" id="deliveryGrid"></div>
+    <div class="empty-state" id="deliveryEmpty">No hay pedidos listos para despachar.</div>
+  </section>
+
+  <details class="techlog">
+    <summary>Ver registro técnico (mensajes del broker)</summary>
+    <div class="log-entries" id="techLog"></div>
+  </details>
+</main>
+
+<script>
+  let ws = null;
+  let currentRole = null;   // 'caja' | 'cocina' | 'delivery'
+  let orderCounter = 1001;  // reinicia en 1001 en cada recarga de página
+  let clientId = null;
+
+  // Pedidos visibles en cada vista (solo en memoria de esta pestaña)
+  const cocinaOrders = new Map();   // id -> order
+  const deliveryOrders = new Map(); // id -> order
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+  const techLog = $("techLog");
+
+  function logTech(tag, cls, text) {
+    const div = document.createElement("div");
+    div.className = "entry";
+    const ts = new Date().toLocaleTimeString("es-PE", { hour12: false });
+    div.innerHTML = `<span class="ts">${ts}</span><span class="tag ${cls}">${tag}</span><span>${text}</span>`;
+    techLog.appendChild(div);
+    techLog.scrollTop = techLog.scrollHeight;
+  }
+
+  // ---------------- Conexión al broker ----------------
+
+  function connectAs(role) {
+    if (ws) { try { ws.close(); } catch (e) {} }
+
+    const url = $("serverUrl").value.trim();
+    ws = new WebSocket(url);
+    currentRole = role;
+    statusEl.textContent = "conectando...";
+    statusEl.className = "off";
+
+    // Caja publica pedidos -> se registra como productor.
+    // Cocina y Delivery reciben pedidos -> se registran como consumidores
+    // (el broker no restringe acciones por rol: Cocina igual puede publicar
+    // a pedido.delivery aunque esté registrada como "consumer").
+    const brokerRole = role === "caja" ? "producer" : "consumer";
+
+    ws.onopen = () => send({ type: "register", role: brokerRole });
+
+    ws.onclose = () => {
+      statusEl.textContent = "desconectado";
+      statusEl.className = "off";
+      logTech("SISTEMA", "sys", "Conexión cerrada");
+    };
+
+    ws.onerror = () => logTech("ERROR", "sys", "Error de conexión WebSocket");
+
+    ws.onmessage = (evt) => handleMessage(JSON.parse(evt.data));
+  }
+
+  function send(obj) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(obj));
+      return true;
+    }
+    return false;
+  }
+
+  function handleMessage(msg) {
+    switch (msg.type) {
+      case "registered":
+        clientId = msg.clientId;
+        statusEl.textContent = `conectado (${clientId})`;
+        statusEl.className = "on";
+        logTech("SISTEMA", "sys", `Registrado con id <b>${clientId}</b>`);
+
+        if (currentRole === "cocina") send({ type: "subscribe", topic: "pedido.cocina" });
+        if (currentRole === "delivery") send({ type: "subscribe", topic: "pedido.delivery" });
+        break;
+
+      case "subscribed":
+        logTech("SISTEMA", "sys", `Suscrito al tópico <b>${msg.topic}</b>`);
+        break;
+
+      case "ack":
+        logTech("ACK", "send", `Confirmado por el broker (tópico ${msg.topic})`);
+        break;
+
+      case "deliver":
+        logTech("RECIBIDO", "recv", `[${msg.topic}] ${msg.content}`);
+        handleDeliver(msg.topic, msg.content);
+        break;
+
+      case "error":
+        logTech("ERROR", "sys", msg.reason);
+        break;
+    }
+  }
+
+  function handleDeliver(topic, content) {
+    let order;
+    try { order = JSON.parse(content); } catch (e) { return; }
+
+    if (topic === "pedido.cocina" && currentRole === "cocina") {
+      cocinaOrders.set(order.id, order);
+      renderCocina();
+    }
+    if (topic === "pedido.delivery" && currentRole === "delivery") {
+      deliveryOrders.set(order.id, order);
+      renderDelivery();
+    }
+  }
+
+  // ---------------- Vista CAJA ----------------
+
+  $("cajaSubmit").addEventListener("click", () => {
+    const cliente = $("cajaCliente").value.trim();
+    const producto = $("cajaProducto").value;
+    const cantidad = parseInt($("cajaCantidad").value, 10) || 1;
+    const direccion = $("cajaDireccion").value.trim();
+
+    if (!cliente || !direccion) {
+      alert("Completa cliente y dirección antes de registrar el pedido.");
+      return;
+    }
+
+    const order = { id: orderCounter++, cliente, producto, cantidad, direccion };
+
+    const ok = send({
+      type: "publish",
+      topic: "pedido.cocina",
+      content: JSON.stringify(order)
+    });
+
+    if (!ok) {
+      alert("No estás conectado al broker todavía.");
+      orderCounter--; // revertir el número si no se pudo enviar
+      return;
+    }
+
+    logTech("ENVIADO", "send",
+      `[pedido.cocina] Pedido #${order.id} | Cliente: ${order.cliente} | Producto: ${order.producto} | Cantidad: ${order.cantidad}`);
+
+    addHistoryItem(order);
+
+    $("cajaCliente").value = "";
+    $("cajaDireccion").value = "";
+    $("cajaCantidad").value = "1";
+  });
+
+  function addHistoryItem(order) {
+    $("cajaEmpty").style.display = "none";
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.innerHTML = `
+      <span class="desc"><b>#${order.id}</b> — ${order.cliente} · ${order.producto} x${order.cantidad}</span>
+      <span class="tag">enviado a cocina</span>
+    `;
+    $("cajaHistory").prepend(div);
+  }
+
+  // ---------------- Vista COCINA ----------------
+
+  function renderCocina() {
+    const grid = $("cocinaGrid");
+    grid.innerHTML = "";
+    const orders = [...cocinaOrders.values()];
+    $("cocinaEmpty").style.display = orders.length ? "none" : "block";
+
+    orders.forEach((order) => {
+      const card = document.createElement("div");
+      card.className = "order-card";
+      card.innerHTML = `
+        <div class="order-id">Pedido #${order.id}</div>
+        <div class="row"><span class="k">Cliente:</span> ${order.cliente}</div>
+        <div class="row"><span class="k">Producto:</span> ${order.producto}</div>
+        <div class="row"><span class="k">Cantidad:</span> ${order.cantidad}</div>
+        <button class="action">Marcar como listo</button>
+      `;
+      card.querySelector("button").addEventListener("click", () => marcarListo(order));
+      grid.appendChild(card);
+    });
+  }
+
+  function marcarListo(order) {
+    send({
+      type: "publish",
+      topic: "pedido.delivery",
+      content: JSON.stringify(order)
+    });
+    logTech("ENVIADO", "send", `[pedido.delivery] Pedido #${order.id} listo para despacho`);
+    cocinaOrders.delete(order.id);
+    renderCocina();
+  }
+
+  // ---------------- Vista DELIVERY ----------------
+
+  function renderDelivery() {
+    const grid = $("deliveryGrid");
+    grid.innerHTML = "";
+    const orders = [...deliveryOrders.values()];
+    $("deliveryEmpty").style.display = orders.length ? "none" : "block";
+
+    orders.forEach((order) => {
+      const card = document.createElement("div");
+      card.className = "order-card";
+      card.innerHTML = `
+        <div class="order-id">Pedido #${order.id}</div>
+        <div class="row"><span class="k">Cliente:</span> ${order.cliente}</div>
+        <div class="row"><span class="k">Dirección:</span> ${order.direccion}</div>
+        <button class="action">Marcar como entregado</button>
+      `;
+      card.querySelector("button").addEventListener("click", () => marcarEntregado(order));
+      grid.appendChild(card);
+    });
+  }
+
+  function marcarEntregado(order) {
+    send({
+      type: "publish",
+      topic: "pedido.finalizado",
+      content: JSON.stringify(order)
+    });
+    logTech("ENVIADO", "send", `[pedido.finalizado] Pedido #${order.id} entregado`);
+    deliveryOrders.delete(order.id);
+    renderDelivery();
+  }
+
+  // ---------------- Selector de rol ----------------
+
+  document.querySelectorAll(".role-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".role-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+      document.getElementById(`view-${btn.dataset.role}`).classList.add("active");
+
+      connectAs(btn.dataset.role);
+    });
+  });
+
+  $("gearBtn").addEventListener("click", () => {
+    $("serverPanel").classList.toggle("open");
+  });
+
+  // Rol inicial: Caja
+  document.querySelector('.role-btn[data-role="caja"]').click();
+</script>
+</body>
+</html>

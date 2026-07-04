@@ -1,0 +1,89 @@
+<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="1000" height="700" fill="#ffffff"/>
+
+  <!-- Título -->
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a2e">
+    BrokerSim — Flujo de un pedido (Caja → Cocina → Delivery)
+  </text>
+  <text x="500" y="54" text-anchor="middle" font-size="12" fill="#666">
+    Mismo broker genérico Pub/Sub por tópicos; el dominio "pedidos" es solo una capa de presentación sobre él
+  </text>
+
+  <!-- ===================== CABECERAS DE PARTICIPANTES ===================== -->
+  <!-- Caja -->
+  <rect x="60" y="72" width="180" height="42" rx="8" fill="#fbe4cd" stroke="#c76a1f" stroke-width="2"/>
+  <text x="150" y="94" text-anchor="middle" font-size="13" font-weight="700" fill="#7a3d10">Caja</text>
+  <text x="150" y="109" text-anchor="middle" font-size="9.5" fill="#8a5a2a">Productor</text>
+
+  <!-- Broker -->
+  <rect x="310" y="72" width="180" height="42" rx="8" fill="#dbe6f5" stroke="#2b5fa8" stroke-width="2"/>
+  <text x="400" y="94" text-anchor="middle" font-size="13" font-weight="700" fill="#1a3c6e">Servidor Broker</text>
+  <text x="400" y="109" text-anchor="middle" font-size="9.5" fill="#3a63a0">Registro + suscripciones + distribución</text>
+
+  <!-- Cocina -->
+  <rect x="560" y="72" width="180" height="42" rx="8" fill="#f5ecc7" stroke="#b8860b" stroke-width="2"/>
+  <text x="650" y="94" text-anchor="middle" font-size="13" font-weight="700" fill="#5c4406">Cocina</text>
+  <text x="650" y="109" text-anchor="middle" font-size="9.5" fill="#7a5c0c">Consumidor y productor</text>
+
+  <!-- Delivery -->
+  <rect x="810" y="72" width="180" height="42" rx="8" fill="#f3d8cf" stroke="#a0432b" stroke-width="2"/>
+  <text x="900" y="94" text-anchor="middle" font-size="13" font-weight="700" fill="#6b2415">Delivery</text>
+  <text x="900" y="109" text-anchor="middle" font-size="9.5" fill="#8a4f36">Consumidor y productor</text>
+
+  <!-- ===================== LÍNEAS DE VIDA ===================== -->
+  <line x1="150" y1="114" x2="150" y2="410" stroke="#aaaaaa" stroke-width="1.4" stroke-dasharray="4,3"/>
+  <line x1="400" y1="114" x2="400" y2="410" stroke="#aaaaaa" stroke-width="1.4" stroke-dasharray="4,3"/>
+  <line x1="650" y1="114" x2="650" y2="410" stroke="#aaaaaa" stroke-width="1.4" stroke-dasharray="4,3"/>
+  <line x1="900" y1="114" x2="900" y2="410" stroke="#aaaaaa" stroke-width="1.4" stroke-dasharray="4,3"/>
+
+  <defs>
+    <marker id="arrowSub" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#888888"/>
+    </marker>
+    <marker id="arrowMsg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <!-- ===================== PASOS 1-2: SUSCRIPCIONES (previas al flujo) ===================== -->
+  <line x1="650" y1="140" x2="400" y2="140" stroke="#888888" stroke-width="1.3" stroke-dasharray="5,3" marker-end="url(#arrowSub)"/>
+  <text x="405" y="135" font-size="11" fill="#5c4406">① subscribe("pedido.cocina")</text>
+
+  <line x1="900" y1="168" x2="400" y2="168" stroke="#888888" stroke-width="1.3" stroke-dasharray="5,3" marker-end="url(#arrowSub)"/>
+  <text x="405" y="163" font-size="11" fill="#6b2415">② subscribe("pedido.delivery")</text>
+
+  <!-- ===================== PASO 3: Caja publica ===================== -->
+  <line x1="150" y1="204" x2="400" y2="204" stroke="#333333" stroke-width="1.8" marker-end="url(#arrowMsg)"/>
+  <text x="155" y="198" font-size="11" font-weight="600" fill="#7a3d10">③ publish "pedido.cocina"</text>
+  <text x="155" y="216" font-size="9.5" fill="#888">{id, cliente, producto, cantidad, direccion}</text>
+
+  <!-- ===================== PASO 4: Broker entrega a Cocina ===================== -->
+  <line x1="400" y1="248" x2="650" y2="248" stroke="#333333" stroke-width="1.8" marker-end="url(#arrowMsg)"/>
+  <text x="405" y="242" font-size="11" font-weight="600" fill="#1a3c6e">④ deliver "pedido.cocina"</text>
+
+  <!-- ===================== PASO 5: Cocina marca listo y publica ===================== -->
+  <line x1="650" y1="292" x2="400" y2="292" stroke="#333333" stroke-width="1.8" marker-end="url(#arrowMsg)"/>
+  <text x="405" y="286" font-size="11" font-weight="600" fill="#5c4406">⑤ publish "pedido.delivery"</text>
+  <text x="405" y="304" font-size="9.5" fill="#888">al presionar "Marcar como listo"</text>
+
+  <!-- ===================== PASO 6: Broker entrega a Delivery ===================== -->
+  <line x1="400" y1="336" x2="900" y2="336" stroke="#333333" stroke-width="1.8" marker-end="url(#arrowMsg)"/>
+  <text x="405" y="330" font-size="11" font-weight="600" fill="#1a3c6e">⑥ deliver "pedido.delivery"</text>
+
+  <!-- ===================== PASO 7: Delivery marca entregado y publica ===================== -->
+  <line x1="900" y1="380" x2="400" y2="380" stroke="#333333" stroke-width="1.8" marker-end="url(#arrowMsg)"/>
+  <text x="405" y="374" font-size="11" font-weight="600" fill="#6b2415">⑦ publish "pedido.finalizado"</text>
+  <text x="405" y="392" font-size="9.5" fill="#888">al presionar "Marcar como entregado" (sin suscriptor activo)</text>
+
+  <!-- ===================== LEYENDA / FLUJO ===================== -->
+  <rect x="40" y="430" width="920" height="250" rx="10" fill="#fafafa" stroke="#cccccc"/>
+  <text x="60" y="455" font-size="13" font-weight="700" fill="#1a1a2e">Flujo de un pedido (demo del panel web)</text>
+  <text x="60" y="478" font-size="12" fill="#333">1. Cocina y Delivery se conectan y se suscriben, cada una a su tópico correspondiente.</text>
+  <text x="60" y="498" font-size="12" fill="#333">2. Caja registra un pedido y publica en "pedido.cocina"; el broker confirma (ack) y lo entrega solo a Cocina.</text>
+  <text x="60" y="518" font-size="12" fill="#333">3. Cocina ve el pedido pendiente; al presionar "Marcar como listo" publica en "pedido.delivery".</text>
+  <text x="60" y="538" font-size="12" fill="#333">4. El broker entrega ese mensaje solo a Delivery (suscrita a "pedido.delivery").</text>
+  <text x="60" y="558" font-size="12" fill="#333">5. Delivery ve el pedido listo para despacho; al presionar "Marcar como entregado" publica en "pedido.finalizado".</text>
+  <text x="60" y="578" font-size="12" fill="#333">6. El broker no tiene suscriptores en "pedido.finalizado" en esta demo (0 entregas); el tópico queda disponible para agregar, por ejemplo, un panel de "Historial".</text>
+  <text x="60" y="605" font-size="11.5" font-style="italic" fill="#555">El broker no distingue "roles de negocio": Caja, Cocina y Delivery son clientes genéricos que registran, se suscriben y publican con el mismo protocolo JSON.</text>
+  <text x="60" y="625" font-size="11.5" font-style="italic" fill="#555">Cocina y Delivery consumen de un tópico y producen hacia el siguiente, igual que lo haría un microservicio real encadenado por colas.</text>
+</svg>
